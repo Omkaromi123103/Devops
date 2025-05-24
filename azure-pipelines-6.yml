@@ -6,7 +6,7 @@ trigger:
 - master
 
 pool:
-  name: PrivateAgent
+  name: Default
   demands:
     - agent.name -equals OMKAR_OMI311203
   vmImage: ubuntu-latest
