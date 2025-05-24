@@ -1,38 +1,37 @@
+# Build your Java project and run tests with Apache Maven.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/java
+
 trigger:
-  branches:
-    include:
-      - main
+- master
 
 pool:
-  vmImage: 'ubuntu-latest'
+  name: PrivateAgent
+  demands:
+    - agent.name -equals OMKAR_OMI311203
+  vmImage: ubuntu-latest
 
 steps:
-  - task: JavaToolInstaller@0
-    inputs:
-      versionSpec: '17'
-      jdkArchitecture: 'x64'
-      jdkSourceOption: 'PreInstalled'
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    goals: 'clean package'
+    options: '-B'
+    PublishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.17'
+    mavenVersionOption: 'Default'
+    mavenAuthenticateFeed: false
+    effectivePomSkip: false
 
-  - script: |
-      echo "Setting JAVA_HOME to installed JDK"
-      echo "##vso[task.setvariable variable=JAVA_HOME]$(JAVA_HOME_17_X64)"
-    displayName: 'Set JAVA_HOME for Maven'
+- task: Publishtestresults@2
+  inputs: 
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    testRunTitle: 'JUnit test results'
 
-  - task: Maven@3
-    inputs:
-      mavenPomFile: 'pom.xml'
-      goals: 'clean install'
-      options: '-X'
-    env:
-      JAVA_HOME: $(JAVA_HOME)
-
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFiles: '**/target/surefire-reports/*.xml'
-      testRunTitle: 'Maven Unit Tests'
-
-  - task: PublishBuildArtifacts@1
-    inputs:
-      pathToPublish: '$(Build.ArtifactStagingDirectory)'
-      artifactName: 'drop'
-      publishLocation: 'Container'
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: 'target'
+    ArtifactName: 'MyArtifact'
+    publishLocation: 'Container'
